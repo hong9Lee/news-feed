@@ -1,8 +1,8 @@
 package com.example.member.framework.web.controller;
 
 import com.example.member.application.usecase.MemberUseCase;
-import com.example.member.framework.web.dto.MemberJoinInputDTO;
-import com.example.member.framework.web.dto.MemberJoinOutPutDTO;
+import com.example.member.framework.web.dto.member.MemberJoinInputDTO;
+import com.example.member.framework.web.dto.member.MemberJoinOutPutDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

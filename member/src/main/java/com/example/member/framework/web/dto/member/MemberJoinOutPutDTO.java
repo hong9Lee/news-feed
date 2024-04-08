@@ -1,4 +1,4 @@
-package com.example.member.framework.web.dto;
+package com.example.member.framework.web.dto.member;
 
 import com.example.member.domain.model.entity.Member;
 import lombok.AllArgsConstructor;

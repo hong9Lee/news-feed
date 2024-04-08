@@ -1,4 +1,4 @@
-package com.example.member.framework.web.dto;
+package com.example.member.framework.web.dto.follow;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Getter
-public class MemberJoinInputDTO {
+@Builder
+public class FollowInPutDTO {
 
-    private String name;
+    private long followerMemberSeq;
+    private long followingMemberSeq;
 
 }
