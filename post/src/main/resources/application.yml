@@ -1,0 +1,25 @@
+spring:
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
+  application:
+    name: post
+  datasource:
+    url: jdbc:mysql://localhost:23306/local_db
+    username: root
+    password: 102030
+  profiles:
+    active: default
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+server:
+  port: 8082
+
+logging:
+  level:
+    org.hibernate.SQL: debug
