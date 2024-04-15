@@ -20,8 +20,8 @@ public class Post {
     @Column(name = "post_id")
     private long id;
 
-    @Column(name = "post_member_id")
-    private long memberId;
+    @Column(name = "post_member_seq")
+    private long memberSeq;
 
     @Column(name = "post_title")
     private String title;
