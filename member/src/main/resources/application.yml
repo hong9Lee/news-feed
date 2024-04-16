@@ -4,10 +4,19 @@ spring:
       matching-strategy: ant_path_matcher
   application:
     name: member
+
+#  db
   datasource:
     url: jdbc:mysql://localhost:23306/local_db
     username: root
     password: 102030
+
+#  redis
+  data:
+    redis:
+      host: localhost
+      port: 26379
+
   profiles:
     active: default
   jpa:
