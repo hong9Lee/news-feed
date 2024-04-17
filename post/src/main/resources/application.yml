@@ -4,12 +4,21 @@ spring:
       matching-strategy: ant_path_matcher
   application:
     name: post
+
+  # db
   datasource:
     url: jdbc:mysql://localhost:23306/local_db
     username: root
     password: 102030
   profiles:
     active: default
+
+  #  redis
+  data:
+    redis:
+      host: localhost
+      port: 26379
+
   jpa:
     hibernate:
       ddl-auto: update

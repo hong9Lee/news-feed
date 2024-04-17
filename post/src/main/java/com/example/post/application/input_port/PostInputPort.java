@@ -7,7 +7,10 @@ import com.example.post.framework.web.dto.post.PostInPutDTO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 @Service
 @Transactional
@@ -15,12 +18,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class PostInputPort implements PostUseCase {
 
+    private final String REDIS_MEMBER_KEY = "memberSeqs";
+    private final RedisTemplate redisTemplate;
     private final PostOutPutPort postOutPutPort;
 
     @Override
     public void posting(PostInPutDTO postInPutDTO) {
-        /** TODO: memberSeq 검증 추가 필요.
-         *
+        /**
          * 1. 직접 요청하기: Member 서버에 직접 요청을 보내어 memberSeq의 유효성을 확인.
          * 이 방법은 구현이 간단하고 실시간으로 정확한 데이터를 확인할 수 있다는 장점이 있다.
          * 하지만, Member 서버에 장애가 발생하면 Post 서버도 영향을 받을 수 있으며, 네트워크 지연으로 인한 성능 문제가 발생할 수 있다.
@@ -31,6 +35,11 @@ public class PostInputPort implements PostUseCase {
          * 3. 이벤트 기반 업데이트: Member 서버에서 회원 정보에 변경이 발생할 때마다 이벤트를 발생시키고, Post 서버가 이 이벤트를 구독하여 db 또는 캐시를 업데이트할 수 있다.
          * 데이터의 실시간 업데이트를 보장하며 시스템의 결합도를 낮출 수 있다.
          * */
+        if (!isValidMemberSeq(postInPutDTO.getMemberSeq())) {
+            // TODO: Exception 추가 필요
+            log.error("존재하지 않는 member 입니다. memberSeq:{}", postInPutDTO.getMemberSeq());
+        }
+
         Post post = Post.builder()
                 .memberSeq(postInPutDTO.getMemberSeq())
                 .title(postInPutDTO.getTitle())
@@ -38,5 +47,10 @@ public class PostInputPort implements PostUseCase {
                 .build();
 
         postOutPutPort.save(post);
+    }
+
+    private boolean isValidMemberSeq(Long memberSeq) {
+        Boolean isMember = redisTemplate.opsForSet().isMember(REDIS_MEMBER_KEY, String.valueOf(memberSeq));
+        return isMember != null && isMember;
     }
 }
