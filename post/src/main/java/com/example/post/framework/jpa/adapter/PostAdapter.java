@@ -6,6 +6,8 @@ import com.example.post.framework.jpa.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class PostAdapter implements PostOutPutPort {
@@ -16,4 +18,11 @@ public class PostAdapter implements PostOutPutPort {
     public Post save(Post post) {
         return postRepository.save(post);
     }
+
+    @Override
+    public Optional<Post> findById(Long id) {
+        return postRepository.findById(id);
+    }
+
+
 }

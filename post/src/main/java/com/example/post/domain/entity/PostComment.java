@@ -18,6 +18,9 @@ public class PostComment {
     @Column(name = "post_comment_id")
     private long id;
 
+    @Column(name = "post_member_seq")
+    private long memberSeq;
+
     @Column(name = "post_comment_text")
     private String commentText;
 

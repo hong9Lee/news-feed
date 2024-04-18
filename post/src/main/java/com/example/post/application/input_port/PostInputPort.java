@@ -4,12 +4,14 @@ import com.example.post.application.output_port.PostOutPutPort;
 import com.example.post.application.usecase.PostUseCase;
 import com.example.post.domain.entity.Post;
 import com.example.post.framework.web.dto.post.PostInPutDTO;
+import com.example.post.util.MemberUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 @Service
@@ -18,9 +20,8 @@ import java.util.Set;
 @Slf4j
 public class PostInputPort implements PostUseCase {
 
-    private final String REDIS_MEMBER_KEY = "memberSeqs";
-    private final RedisTemplate redisTemplate;
     private final PostOutPutPort postOutPutPort;
+    private final MemberUtil memberUtil;
 
     @Override
     public void posting(PostInPutDTO postInPutDTO) {
@@ -35,9 +36,9 @@ public class PostInputPort implements PostUseCase {
          * 3. 이벤트 기반 업데이트: Member 서버에서 회원 정보에 변경이 발생할 때마다 이벤트를 발생시키고, Post 서버가 이 이벤트를 구독하여 db 또는 캐시를 업데이트할 수 있다.
          * 데이터의 실시간 업데이트를 보장하며 시스템의 결합도를 낮출 수 있다.
          * */
-        if (!isValidMemberSeq(postInPutDTO.getMemberSeq())) {
-            // TODO: Exception 추가 필요
+        if (memberUtil.isValidMemberSeq(postInPutDTO.getMemberSeq())) {
             log.error("존재하지 않는 member 입니다. memberSeq:{}", postInPutDTO.getMemberSeq());
+            throw new NoSuchElementException("존재하지 않는 member 입니다");
         }
 
         Post post = Post.builder()
@@ -47,10 +48,5 @@ public class PostInputPort implements PostUseCase {
                 .build();
 
         postOutPutPort.save(post);
-    }
-
-    private boolean isValidMemberSeq(Long memberSeq) {
-        Boolean isMember = redisTemplate.opsForSet().isMember(REDIS_MEMBER_KEY, String.valueOf(memberSeq));
-        return isMember != null && isMember;
     }
 }
