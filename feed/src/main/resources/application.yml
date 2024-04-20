@@ -3,7 +3,7 @@ spring:
     path match:
       matching-strategy: ant_path_matcher
   application:
-    name: member
+    name: feed
 
   #  db
   datasource:
@@ -32,3 +32,4 @@ server:
 logging:
   level:
     org.hibernate.SQL: debug
+
