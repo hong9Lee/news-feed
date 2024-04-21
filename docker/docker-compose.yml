@@ -35,8 +35,9 @@ services:
       - node.name=elasticsearch
       - cluster.name=es-cluster
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - discovery.type=single-node
+      - action.auto_create_index=true # 자동 인덱스 생성 활성화
     ulimits:
       memlock:
         soft: -1
