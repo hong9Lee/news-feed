@@ -5,5 +5,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FollowOutPutPort {
+
     Follow save(Follow follow);
+
+    boolean existsByMemberSeqAndFollowerSeq(long memberSeq, long followerSeq);
 }

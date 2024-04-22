@@ -7,9 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +27,7 @@ public class Member {
     @Column(name = "member_name")
     private String name;
 
-    @OneToMany(mappedBy = "following")
+    @OneToMany(mappedBy = "member")
     private List<Follow> followers;
 
     @OneToMany(mappedBy = "follower")

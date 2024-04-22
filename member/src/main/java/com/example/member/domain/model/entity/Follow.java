@@ -20,8 +20,8 @@ public class Follow {
     private long seq;
 
     @ManyToOne
-    @JoinColumn(name = "following_member_id")
-    private Member following;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @ManyToOne
     @JoinColumn(name = "follower_member_id")

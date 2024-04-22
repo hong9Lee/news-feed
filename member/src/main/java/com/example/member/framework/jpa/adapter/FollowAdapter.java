@@ -16,4 +16,9 @@ public class FollowAdapter implements FollowOutPutPort {
     public Follow save(Follow follow) {
         return followRepository.save(follow);
     }
+
+    @Override
+    public boolean existsByMemberSeqAndFollowerSeq(long memberSeq, long followerSeq) {
+        return followRepository.existsByMemberSeqAndFollowerSeq(memberSeq, followerSeq);
+    }
 }

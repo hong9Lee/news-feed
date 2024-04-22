@@ -38,19 +38,19 @@ class MemberTest {
 
         Follow follow1 = Follow.builder()
                 .follower(savedFollower1)
-                .following(savedUser)
+                .member(savedUser)
                 .build();
 
         Follow follow2 = Follow.builder()
                 .follower(savedFollower2)
-                .following(savedUser)
+                .member(savedUser)
                 .build();
 
         followRepository.save(follow1);
         followRepository.save(follow2);
 
 
-        List<Follow> followings = followRepository.findByFollowing(savedUser);
+        List<Follow> followings = followRepository.findByMember(savedUser);
         assertEquals(2, followings.size());
 
         List<Follow> followers = followRepository.findByFollower(savedUser);

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class FollowInPutDTO {
 
+    private long memberSeq;
     private long followerMemberSeq;
-    private long followingMemberSeq;
 
 }
