@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Getter
-public class MemberJoinInputDTO {
+public class MemberJoinInPutDTO {
 
     private String name;
 

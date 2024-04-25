@@ -3,7 +3,7 @@ package com.example.member.application.input_port;
 import com.example.member.application.output_port.MemberOutPutPort;
 import com.example.member.application.usecase.MemberUseCase;
 import com.example.member.domain.model.entity.Member;
-import com.example.member.framework.web.dto.member.MemberJoinInputDTO;
+import com.example.member.framework.web.dto.member.MemberJoinInPutDTO;
 import com.example.member.framework.web.dto.member.MemberJoinOutPutDTO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class MemberInputPort implements MemberUseCase {
     private final RedisTemplate redisTemplate;
 
     @Override
-    public MemberJoinOutPutDTO createNewMember(MemberJoinInputDTO memberJoinInputDTO) {
+    public MemberJoinOutPutDTO createNewMember(MemberJoinInPutDTO memberJoinInputDTO) {
         Member savedMember = memberOutPutPort.save(Member.builder()
                 .name(memberJoinInputDTO.getName())
                 .build());
