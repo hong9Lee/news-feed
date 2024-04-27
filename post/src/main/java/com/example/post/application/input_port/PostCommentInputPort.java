@@ -26,7 +26,7 @@ public class PostCommentInputPort implements PostCommentUseCase {
 
     @Override
     public void postComment(PostCommentInPutDTO postCommentInPutDTO) {
-        if (memberUtil.isValidMemberSeq(postCommentInPutDTO.getMemberSeq())) {
+        if (!memberUtil.isValidMemberSeq(postCommentInPutDTO.getMemberSeq())) {
             log.error("존재하지 않는 member 입니다. memberSeq:{}", postCommentInPutDTO.getMemberSeq());
             throw new NoSuchElementException("존재하지 않는 member 입니다");
         }
