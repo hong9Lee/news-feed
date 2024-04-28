@@ -5,13 +5,18 @@ import com.example.post.application.usecase.PostUseCase;
 import com.example.post.domain.entity.Post;
 import com.example.post.framework.web.dto.post.PostInPutDTO;
 import com.example.post.util.MemberUtil;
+import com.google.gson.Gson;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -22,6 +27,9 @@ public class PostInputPort implements PostUseCase {
     private final PostOutPutPort postOutPutPort;
     private final MemberUtil memberUtil;
     private final RedisTemplate redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final Gson gson;
+
     private final String REDIS_POST_KEY = "postMemberSeqs";
 
     @Override
@@ -50,11 +58,20 @@ public class PostInputPort implements PostUseCase {
 
 
         Post savedPost = postOutPutPort.save(post);
-        addPostHashRedis(savedPost.getId(), savedPost.getMemberSeq());
+        addPostToMember(savedPost.getId(), savedPost.getMemberSeq());
     }
 
-    public void addPostHashRedis(long postSeq, long memberSeq) {
-        redisTemplate.opsForHash().put(REDIS_POST_KEY, String.valueOf(postSeq), String.valueOf(memberSeq));
-        log.info("[redis] addPostHashRedis key:{}, postSeq:{}, memberSeq:{}", REDIS_POST_KEY, postSeq, memberSeq);
+    public void addPostToMember(long postSeq, long memberSeq) {
+        List<String> posts = getPostsForMember(String.valueOf(memberSeq));
+        posts.add(String.valueOf(postSeq)); // 새 게시물 추가
+        String postsJson = gson.toJson(posts); // 리스트를 JSON으로 변환
+        redisTemplate.opsForHash().put(REDIS_POST_KEY, String.valueOf(memberSeq), postsJson);
+        log.info("[Redis] Updated posts for memberSeq {}: {}", memberSeq, postsJson);
+    }
+
+    private List<String> getPostsForMember(String key) {
+        String postsJson = (String) redisTemplate.opsForHash().get(REDIS_POST_KEY, key);
+        if (postsJson == null) return new ArrayList<>();
+        return gson.fromJson(postsJson, List.class);
     }
 }

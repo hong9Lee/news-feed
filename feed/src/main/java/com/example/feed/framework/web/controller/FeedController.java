@@ -20,7 +20,7 @@ public class FeedController {
 
     @GetMapping("/feed/{memberSeq}")
     public ResponseEntity getFeed(@PathVariable Long memberSeq) {
-        log.info("following controller request init");
+        log.info("feed controller request init");
         feedUseCase.getFeed(memberSeq);
         return ResponseEntity.ok(HttpStatus.OK);
     }
