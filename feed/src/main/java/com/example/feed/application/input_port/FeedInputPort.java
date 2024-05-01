@@ -6,14 +6,23 @@ import com.example.feed.application.usecase.FeedUseCase;
 import com.example.feed.domain.entity.Post;
 import com.example.feed.domain.entity.PostComment;
 import com.example.feed.framework.dto.RelationsOutPutDTO;
+import com.example.feed.framework.web.dto.FeedDTO;
+import com.example.feed.framework.web.dto.PostCommentDTO;
+import com.example.feed.framework.web.dto.PostDTO;
 import com.example.feed.util.MemberUtil;
 import com.example.feed.util.WebClientUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.lettuce.core.api.sync.RedisCommands;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
@@ -27,28 +36,31 @@ import java.util.stream.Collectors;
 public class FeedInputPort implements FeedUseCase {
 
     private final String REDIS_POST_KEY = "postMemberSeqs";
+    private final String REDIS_FEED_KEY = "feedData";
     private final MemberUtil memberUtil;
     private final WebClientUtil webClientUtil;
     private final RedisTemplate redisTemplate;
     private final Gson gson;
     private final PostOutPutPort postOutPutPort;
-    private final PostCommentOutPutPort postCommentOutPutPort;
-
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public void getFeed(Long memberSeq) {
+    public FeedDTO getFeed(Long memberSeq) {
 //        if (memberUtil.isValidMemberSeq(memberSeq)) {
 //            log.error("존재하지 않는 member 입니다. memberSeq:{}", memberSeq);
 //            throw new NoSuchElementException("존재하지 않는 member 입니다");
 //        }
 
+        var feedDTO = fetchFeedDTO(memberSeq);
+        if(feedDTO != null) {
+            return feedDTO;
+        }
 
         // TODO: cache 미스 시, feed 생성
         var relationsOutPutDTO = webClientUtil.makeRestCall("http://localhost:8081/api/v1/member/relation/" + memberSeq,
                 HttpMethod.GET, RelationsOutPutDTO.class);
         var postSeqSet = findPostCacheData(relationsOutPutDTO);
-        createFeed(postSeqSet);
-
+        return createFeed(postSeqSet, memberSeq);
     }
 
     private Set<Long> findPostCacheData(RelationsOutPutDTO relationsOutPutDTO) {
@@ -62,31 +74,71 @@ public class FeedInputPort implements FeedUseCase {
     }
 
     public Set<Long> getAllHashFields(Set<String> memberSeqs) {
-        // TODO: lettuce를 사용하여 JSON 핸들링 변경
-        List<Object> rawData = redisTemplate.opsForHash().multiGet(REDIS_POST_KEY, new HashSet<>(memberSeqs));
+        List<String> rawData = redisTemplate.opsForHash().multiGet(REDIS_POST_KEY, new HashSet<>(memberSeqs));
         return rawData.stream()
-                .map(object -> {
-                    String json = object.toString();
-                    List<String> list = gson.fromJson(json, new TypeToken<List<String>>() {
-                    }.getType());
-                    return list;
-                })
+                .map(e -> convertJsonToList(e))
                 .flatMap(List::stream)
                 .map(Long::parseLong)
                 .collect(Collectors.toSet());
     }
+
 
     /**
      * 일단 Post, PostComment 모델을 공유하며 db 조회하여 feed 데이터 생성.
      * 개선 방안: post, postComment 데이터를 post 서버에 요청해 Feed 생성 후 캐싱
      * 고민 포인트: post 서버에 요청할 양이 많아진다면 타임아웃이 발생하지 않을까?
      */
-    private void createFeed(Set<Long> postSeqSet) {
-        List<Post> postEntities = postOutPutPort.findAllByIdIn(postSeqSet);
-        List<PostComment> postCommentEntities = postCommentOutPutPort.findAllByPostId(postSeqSet);
+    private FeedDTO createFeed(Set<Long> postSeqSet, Long memberSeq) {
+        var postEntities = postOutPutPort.findAllByIdIn(postSeqSet);
 
-        // TODO: post, postComment 조합하여 캐싱.
+        List<PostDTO> postDTOS = new ArrayList<>();
+        postEntities.forEach(postEntity -> {
+            var commentDTOS = PostCommentDTO.convertCommentEntities(postEntity);
+            postDTOS.add(PostDTO.builder()
+                    .memberSeq(postEntity.getMemberSeq())
+                    .title(postEntity.getTitle())
+                    .description(postEntity.getDescription())
+                    .likeCount(postEntity.getLikeCount())
+                    .postComments(commentDTOS)
+                    .build());
+        });
+
+        FeedDTO feedDTO = FeedDTO.builder()
+                .memberSeq(memberSeq)
+                .postDTOS(postDTOS)
+                .build();
+
+        // post, postComment 조합하여 캐싱.
+        try {
+            String feedJson = objectMapper.writeValueAsString(feedDTO);
+            HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
+            hashOps.put(REDIS_FEED_KEY, memberSeq.toString(), feedJson);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return feedDTO;
     }
 
+    public FeedDTO fetchFeedDTO(Long memberSeq) {
+        HashOperations<String, Long, String> hashOps = redisTemplate.opsForHash();
+        String feedJson = hashOps.get(REDIS_FEED_KEY, memberSeq.toString());
+        if (feedJson != null) {
+            try {
+                return objectMapper.readValue(feedJson, FeedDTO.class);
+            } catch (JsonProcessingException e) {
+                log.error("Error deserializing FeedDTO: {}", e.getMessage(), e);
+            }
+        }
+        return null;
+    }
+
+
+    private List<String> convertJsonToList(String json) {
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JSON", e);
+        }
+    }
 
 }

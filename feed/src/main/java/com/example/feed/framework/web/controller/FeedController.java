@@ -1,9 +1,9 @@
 package com.example.feed.framework.web.controller;
 
 import com.example.feed.application.usecase.FeedUseCase;
+import com.example.feed.framework.web.dto.FeedDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,10 +19,10 @@ public class FeedController {
     private final FeedUseCase feedUseCase;
 
     @GetMapping("/feed/{memberSeq}")
-    public ResponseEntity getFeed(@PathVariable Long memberSeq) {
+    public ResponseEntity<FeedDTO> getFeed(@PathVariable Long memberSeq) {
         log.info("feed controller request init");
-        feedUseCase.getFeed(memberSeq);
-        return ResponseEntity.ok(HttpStatus.OK);
+        FeedDTO feedDTO = feedUseCase.getFeed(memberSeq);
+        return ResponseEntity.ok(feedDTO);
     }
 
 }

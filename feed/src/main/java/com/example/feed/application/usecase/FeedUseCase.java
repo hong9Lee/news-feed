@@ -1,5 +1,7 @@
 package com.example.feed.application.usecase;
 
+import com.example.feed.framework.web.dto.FeedDTO;
+
 public interface FeedUseCase {
-    void getFeed(Long memberSeq);
+    FeedDTO getFeed(Long memberSeq);
 }

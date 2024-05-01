@@ -41,6 +41,8 @@ dependencies {
     implementation "org.apache.httpcomponents.core5:httpcore5-h2:${dependencyManagement.importedProperties['httpcore5.version']}"
     implementation "org.apache.httpcomponents.client5:httpclient5:${dependencyManagement.importedProperties['httpclient5.version']}"
 
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
