@@ -9,6 +9,7 @@ import com.example.feed.framework.dto.RelationsOutPutDTO;
 import com.example.feed.framework.web.dto.FeedDTO;
 import com.example.feed.framework.web.dto.PostCommentDTO;
 import com.example.feed.framework.web.dto.PostDTO;
+import com.example.feed.util.GrpcClientUtil;
 import com.example.feed.util.MemberUtil;
 import com.example.feed.util.WebClientUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,6 +21,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import member.MemberRelation;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -42,6 +44,7 @@ public class FeedInputPort implements FeedUseCase {
     private final RedisTemplate redisTemplate;
     private final Gson gson;
     private final PostOutPutPort postOutPutPort;
+    private final GrpcClientUtil grpcClientUtil;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -52,10 +55,10 @@ public class FeedInputPort implements FeedUseCase {
 //        }
 
         /** 캐시 히트시 dto feed 데이터 반환 */
-        var feedDTO = fetchFeedDTO(memberSeq);
-        if(feedDTO != null) {
-            return feedDTO;
-        }
+//        var feedDTO = fetchFeedDTO(memberSeq);
+//        if(feedDTO != null) {
+//            return feedDTO;
+//        }
 
         /** member 서버에 요청하여 els에 저장되어있는 회원의 팔로워 정보를 가져온다.
          * TODO: rest 통신에서 rpc 통신으로 개선하여 성능 비교해보기. */
@@ -63,10 +66,13 @@ public class FeedInputPort implements FeedUseCase {
         /**
          * 1. rest 통신
          */
-        var relationsOutPutDTO = webClientUtil.makeRestCall("http://localhost:8081/api/v1/member/relation/" + memberSeq,
-                HttpMethod.GET, RelationsOutPutDTO.class);
+//        var relationsOutPutDTO = webClientUtil.makeRestCall("http://localhost:8081/api/v1/member/relation/" + memberSeq,
+//                HttpMethod.GET, RelationsOutPutDTO.class);
 
+        MemberRelation.MemberResponse response = grpcClientUtil.getMemberRelations(memberSeq);
 
+        // 임시
+        RelationsOutPutDTO relationsOutPutDTO = new RelationsOutPutDTO();
 
         var postSeqSet = findPostCacheData(relationsOutPutDTO);
         return createFeed(postSeqSet, memberSeq);

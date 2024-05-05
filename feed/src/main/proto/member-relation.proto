@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package member;
+
+service MemberService {
+  rpc GetMemberRelations(MemberRequest) returns (MemberResponse);
+}
+
+message MemberRequest {
+  int64 memberSeq = 1;
+}
+
+message MemberResponse {
+  repeated Relation relations = 1;
+}
+
+message Relation {
+  int64 relatedMemberSeq = 1;
+  string relationType = 2;
+}
