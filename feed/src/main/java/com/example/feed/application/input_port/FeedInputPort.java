@@ -51,14 +51,23 @@ public class FeedInputPort implements FeedUseCase {
 //            throw new NoSuchElementException("존재하지 않는 member 입니다");
 //        }
 
+        /** 캐시 히트시 dto feed 데이터 반환 */
         var feedDTO = fetchFeedDTO(memberSeq);
         if(feedDTO != null) {
             return feedDTO;
         }
 
-        // TODO: cache 미스 시, feed 생성
+        /** member 서버에 요청하여 els에 저장되어있는 회원의 팔로워 정보를 가져온다.
+         * TODO: rest 통신에서 rpc 통신으로 개선하여 성능 비교해보기. */
+
+        /**
+         * 1. rest 통신
+         */
         var relationsOutPutDTO = webClientUtil.makeRestCall("http://localhost:8081/api/v1/member/relation/" + memberSeq,
                 HttpMethod.GET, RelationsOutPutDTO.class);
+
+
+
         var postSeqSet = findPostCacheData(relationsOutPutDTO);
         return createFeed(postSeqSet, memberSeq);
     }
