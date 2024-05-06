@@ -1,4 +1,4 @@
-package com.example.feed.config;
+package com.example.member.config;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -11,16 +11,16 @@ import org.springframework.context.annotation.Configuration;
 public class GrpcClientConfig {
 
     @Bean
-    @Qualifier("managedMemberChannel")
-    public ManagedChannel managedMemberChannel() {
-        return ManagedChannelBuilder.forAddress("localhost", 8084)
+    @Qualifier("managedFeedChannel")
+    public ManagedChannel managedFeedChannel() {
+        return ManagedChannelBuilder.forAddress("localhost", 8083)
                 .usePlaintext()
                 .build();
     }
 
     @Bean
-    @Qualifier("memberServiceStub")
-    public MemberServiceGrpc.MemberServiceBlockingStub memberServiceStub(@Qualifier("managedMemberChannel") ManagedChannel channel) {
+    @Qualifier("feedServiceStub")
+    public MemberServiceGrpc.MemberServiceBlockingStub feedServiceStub(@Qualifier("managedFeedChannel") ManagedChannel channel) {
         return MemberServiceGrpc.newBlockingStub(channel);
     }
 }

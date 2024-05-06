@@ -27,8 +27,4 @@ public class GrpcClientUtil {
     public void shutdown() {
         channel.shutdown();
     }
-
-
-
-
 }

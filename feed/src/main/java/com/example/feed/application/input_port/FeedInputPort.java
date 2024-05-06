@@ -68,14 +68,26 @@ public class FeedInputPort implements FeedUseCase {
          */
 //        var relationsOutPutDTO = webClientUtil.makeRestCall("http://localhost:8081/api/v1/member/relation/" + memberSeq,
 //                HttpMethod.GET, RelationsOutPutDTO.class);
+//        var postSeqSet = findPostCacheData(relationsOutPutDTO);
 
-        MemberRelation.MemberResponse response = grpcClientUtil.getMemberRelations(memberSeq);
-
-        // 임시
-        RelationsOutPutDTO relationsOutPutDTO = new RelationsOutPutDTO();
-
-        var postSeqSet = findPostCacheData(relationsOutPutDTO);
+        /**
+         * 2. rpc 통신
+         */
+        var postSeqSet = findPostCacheData(convertToDto(grpcClientUtil.getMemberRelations(memberSeq)));
         return createFeed(postSeqSet, memberSeq);
+    }
+
+    public RelationsOutPutDTO convertToDto(MemberRelation.MemberResponse response) {
+        List<Long> followers = response.getFollowersList();
+        List<Long> followings = response.getFollowingsList();
+        List<Long> blockMembers = response.getBlockMembersList();
+
+        return RelationsOutPutDTO.builder()
+                .memberSeq(response.getMemberSeq())
+                .followers(followers)
+                .followings(followings)
+                .blockMembers(blockMembers)
+                .build();
     }
 
     private Set<Long> findPostCacheData(RelationsOutPutDTO relationsOutPutDTO) {
